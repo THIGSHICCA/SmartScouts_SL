@@ -17,6 +17,11 @@ export function Sidebar({ role = 'scout' }: { role?: 'scout' | 'leader' | 'patro
     },
     ...(role === 'scout' ? [
       {
+        name: 'Scout Feed',
+        href: '/scout/feed',
+        icon: MessageSquare,
+      },
+      {
         name: 'My Profile',
         href: '/scout/profile',
         icon: User,

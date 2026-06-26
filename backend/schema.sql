@@ -108,7 +108,7 @@ CREATE TABLE milestones (
 );
 
 -- =============================================================
--- PROFICIENCY BADGES  (separate system — optional badges)
+-- PROFICIENCY BADGES.  (separate system — optional badges)
 -- =============================================================
 CREATE TABLE proficiency_badges (
     id          SERIAL PRIMARY KEY,

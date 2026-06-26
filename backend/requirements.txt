@@ -4,3 +4,4 @@ psycopg2-binary
 pyjwt
 bcrypt
 python-dotenv
+# backend/requirements.txt

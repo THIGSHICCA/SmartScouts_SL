@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Badge, RequirementStatus, badgesData as initialBadgesData, BadgeStatus } from '@/data/badges';
 
 export interface ScoutTask {
@@ -20,7 +20,7 @@ export interface BadgeRequest {
   badgeName: string;
 }
 
-interface Scout {
+export interface Scout {
   id: number;
   name: string;
   badge: string;
@@ -28,29 +28,187 @@ interface Scout {
   completedBadges: number;
 }
 
+export interface DetailedScout {
+  id: number;
+  name: string;
+  roles: string[];
+  troop: string;
+  batch: string;
+  scoutId: string;
+  joinDate: string;
+  district: string;
+  email: string;
+  avatar?: string;
+  coverImage?: string;
+  achievements: string[];
+}
+
+export interface Comment {
+  id: number;
+  author: string;
+  authorAvatar?: string;
+  text: string;
+  timestamp: string;
+}
+
+export interface Post {
+  id: number;
+  authorId: number;
+  authorName: string;
+  authorAvatar?: string;
+  authorRoles: string[];
+  content: string;
+  image?: string;
+  likes: number;
+  likedBy: number[];
+  comments: Comment[];
+  timestamp: string;
+}
+
 interface AppContextType {
   badges: Badge[];
   pendingTasks: ScoutTask[];
   pendingBadges: BadgeRequest[];
   scouts: Scout[];
+  detailedScouts: DetailedScout[];
+  posts: Post[];
   toggleRequirement: (badgeId: string, categoryId: number, reqId: number, currentStatus: RequirementStatus) => void;
   toggleSubTask: (badgeId: string, categoryId: number, reqId: number, subId: number) => void;
   approveTask: (taskId: number) => void;
   addScout: (name: string) => void;
   submitBadge: (badgeId: string) => void;
   approveBadge: (badgeRequestId: number) => void;
+  updateScoutProfile: (id: number, updatedProfile: DetailedScout) => void;
+  addPost: (content: string, image?: string) => void;
+  likePost: (postId: number, userId: number) => void;
+  addComment: (postId: number, authorName: string, text: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+
+const INITIAL_DETAILED_SCOUTS: DetailedScout[] = [
+  {
+    id: 999,
+    name: 'Alex Johnson',
+    roles: ['Senior Scout', 'Patrol Leader'],
+    troop: '1st Colombo Scout Group',
+    batch: 'Batch of 2022',
+    scoutId: 'SL-2022-045',
+    joinDate: 'March 2022',
+    district: 'Colombo South',
+    email: 'alex.scout@gmail.com',
+    achievements: [
+      "President's Scout Award Candidate",
+      "Patrol Leader Council Representative",
+      "Colombo District Camporee 1st Place (Pioneering)",
+      "Beach Cleanup Volunteer Lead"
+    ]
+  },
+  {
+    id: 1,
+    name: 'Jordan Lee',
+    roles: ['Scout Scribe', 'Senior Scout'],
+    troop: '1st Colombo Scout Group',
+    batch: 'Batch of 2022',
+    scoutId: 'SL-2022-018',
+    joinDate: 'January 2022',
+    district: 'Colombo South',
+    email: 'jordan.lee@gmail.com',
+    achievements: [
+      "First Aid Proficiency Badge",
+      "Patrol Scribe of the Year 2023",
+      "Colombo Youth Forum Delegate"
+    ],
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'
+  },
+  {
+    id: 2,
+    name: 'Sam Wilson',
+    roles: ['Troop Leader', 'Senior Scout'],
+    troop: '1st Colombo Scout Group',
+    batch: 'Batch of 2021',
+    scoutId: 'SL-2021-002',
+    joinDate: 'June 2021',
+    district: 'Colombo South',
+    email: 'sam.wilson@gmail.com',
+    achievements: [
+      "President's Scout Award Earner 2024",
+      "Gold Cord Recipient",
+      "National Jamboree Patrol Leader"
+    ],
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200'
+  }
+];
+
+const INITIAL_POSTS: Post[] = [
+  {
+    id: 1,
+    authorId: 2,
+    authorName: 'Sam Wilson',
+    authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
+    authorRoles: ['Troop Leader', 'Senior Scout'],
+    content: "Absolutely thrilled to have completed my final verification for the President's Scout Award today! ⚜️ Big thanks to our Scout Leader and the entire troop for the support over the last 3 years.",
+    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=800',
+    likes: 8,
+    likedBy: [1],
+    comments: [
+      {
+        id: 101,
+        author: 'Jordan Lee',
+        authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+        text: 'Huge congratulations Sam! Well deserved!',
+        timestamp: '2 hours ago'
+      }
+    ],
+    timestamp: '4 hours ago'
+  },
+  {
+    id: 2,
+    authorId: 1,
+    authorName: 'Jordan Lee',
+    authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+    authorRoles: ['Scout Scribe', 'Senior Scout'],
+    content: "Just uploaded my pioneering project evidence for the Membership Badge. Building a miniature trestle bridge was challenging but so rewarding! 🌉 Check it out in the evidence panel.",
+    likes: 3,
+    likedBy: [],
+    comments: [],
+    timestamp: '1 day ago'
+  }
+];
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [badges, setBadges] = useState<Badge[]>(initialBadgesData);
   
   const [scouts, setScouts] = useState<Scout[]>([
-    { id: 1, name: 'Alex Johnson', badge: 'Scout Membership Badge', progress: 42, completedBadges: 0 },
-    { id: 2, name: 'Jordan Lee', badge: 'Scout Membership Badge', progress: 85, completedBadges: 0 },
-    { id: 999, name: 'My Profile (Scout)', badge: 'Scout Membership Badge', progress: 42, completedBadges: 0 },
+    { id: 999, name: 'Alex Johnson', badge: 'Scout Membership Badge', progress: 42, completedBadges: 0 },
+    { id: 1, name: 'Jordan Lee', badge: 'Scout Membership Badge', progress: 85, completedBadges: 0 },
+    { id: 2, name: 'Sam Wilson', badge: 'Scout Membership Badge', progress: 100, completedBadges: 2 },
   ]);
+
+  const [detailedScouts, setDetailedScouts] = useState<DetailedScout[]>(INITIAL_DETAILED_SCOUTS);
+  const [posts, setPosts] = useState<Post[]>(INITIAL_POSTS);
+
+  // Sync detailedScouts and posts with local storage
+  useEffect(() => {
+    const savedDetailed = localStorage.getItem('smart_scouts_detailed');
+    if (savedDetailed) {
+      try { setDetailedScouts(JSON.parse(savedDetailed)); } catch(e) {}
+    }
+    const savedPosts = localStorage.getItem('smart_scouts_posts');
+    if (savedPosts) {
+      try { setPosts(JSON.parse(savedPosts)); } catch(e) {}
+    }
+  }, []);
+
+  const saveDetailedScouts = (updated: DetailedScout[]) => {
+    setDetailedScouts(updated);
+    localStorage.setItem('smart_scouts_detailed', JSON.stringify(updated));
+  };
+
+  const savePosts = (updated: Post[]) => {
+    setPosts(updated);
+    localStorage.setItem('smart_scouts_posts', JSON.stringify(updated));
+  };
 
   const [pendingTasks, setPendingTasks] = useState<ScoutTask[]>([]);
   const [pendingBadges, setPendingBadges] = useState<BadgeRequest[]>([]);
@@ -79,7 +237,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return category;
       });
       
-      newBadge.categories = newCategories as any; // Cast to avoid deep type check issues
+      newBadge.categories = newCategories as any;
       newBadges[bIndex] = newBadge;
       return newBadges;
     });
@@ -91,12 +249,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         reqId,
         badgeId,
         categoryId,
-        scoutName: 'My Profile (Scout)',
+        scoutName: 'Alex Johnson',
         badgeName: badge.title,
         taskText: reqText
       }]);
     } else if (nextStatus === 'incomplete') {
-      setPendingTasks(prev => prev.filter(t => t.reqId !== reqId || t.scoutName !== 'My Profile (Scout)'));
+      setPendingTasks(prev => prev.filter(t => t.reqId !== reqId || t.scoutName !== 'Alex Johnson'));
     }
   };
 
@@ -127,15 +285,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
                   return sub;
                 });
 
-                // Check if all subtasks are now completed
                 const allDone = newSubTasks.every(s => s.status === 'completed');
                 const wasPending = req.status === 'pending_pl';
 
-                // Automatically move to pending_pl if all subtasks are done
                 if (allDone && !wasPending && req.status !== 'completed') {
-                  // This is a bit tricky since we're inside setBadges. 
-                  // We'll handle the pendingTasks update outside or via an effect, 
-                  // but for now let's just update the status.
                   return { ...req, subTasks: newSubTasks, status: 'pending_pl' as RequirementStatus, completedDate: new Date().toLocaleDateString() };
                 }
 
@@ -153,9 +306,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return newBadges;
     });
 
-    // Handle pendingTasks update for automatic pending_pl
-    // (In a real app, this would be cleaner, but here we just re-check after state update or do it manually)
-    // For now, I'll let the user click the main task to submit, or I can add it here.
     const req = badge.categories[categoryId].requirements.find(r => r.id === reqId);
     if (req && req.subTasks) {
       const sub = req.subTasks.find(s => s.id === subId);
@@ -167,7 +317,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             reqId,
             badgeId,
             categoryId,
-            scoutName: 'My Profile (Scout)',
+            scoutName: 'Alex Johnson',
             badgeName: badge.title,
             taskText: req.text
           }]);
@@ -182,7 +332,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     setPendingTasks(prev => prev.filter(t => t.id !== taskId));
 
-    if (task.scoutName === 'My Profile (Scout)') {
+    if (task.scoutName === 'Alex Johnson') {
       setBadges(prevBadges => {
         const newBadges = [...prevBadges];
         const bIndex = newBadges.findIndex(b => b.id === task.badgeId);
@@ -227,7 +377,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setPendingBadges(prev => [...prev, {
       id: Date.now(),
       badgeId,
-      scoutName: 'My Profile (Scout)',
+      scoutName: 'Alex Johnson',
       badgeName: badge.title
     }]);
   };
@@ -246,7 +396,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return b;
       });
 
-      // Unlock next badge
       const currentIdx = newBadges.findIndex(b => b.id === request.badgeId);
       if (currentIdx < newBadges.length - 1) {
         newBadges[currentIdx + 1].isLocked = false;
@@ -256,7 +405,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
 
     setScouts(prev => prev.map(s => {
-      if (s.name === 'My Profile (Scout)') {
+      if (s.name === 'Alex Johnson') {
         return { 
           ...s, 
           completedBadges: s.completedBadges + 1,
@@ -268,13 +417,105 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addScout = (name: string) => {
+    const newId = Date.now();
     setScouts(prev => [...prev, {
-      id: Date.now(),
+      id: newId,
       name,
       badge: 'Scout Membership Badge',
       progress: 0,
       completedBadges: 0
     }]);
+    saveDetailedScouts([...detailedScouts, {
+      id: newId,
+      name,
+      roles: ['Scout'],
+      troop: '1st Colombo Scout Group',
+      batch: 'Batch of 2024',
+      scoutId: `SL-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+      joinDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      district: 'Colombo South',
+      email: `${name.toLowerCase().replace(/\s+/g, '')}@gmail.com`,
+      achievements: []
+    }]);
+  };
+
+  const updateScoutProfile = (id: number, updatedProfile: DetailedScout) => {
+    const nextDetailed = detailedScouts.map(ds => ds.id === id ? updatedProfile : ds);
+    saveDetailedScouts(nextDetailed);
+
+    // Sync back to scouts list name
+    setScouts(prev => prev.map(s => s.id === id ? { ...s, name: updatedProfile.name } : s));
+
+    // Update author info in posts if they edited their profile
+    const nextPosts = posts.map(p => {
+      if (p.authorId === id) {
+        return {
+          ...p,
+          authorName: updatedProfile.name,
+          authorAvatar: updatedProfile.avatar,
+          authorRoles: updatedProfile.roles
+        };
+      }
+      return p;
+    });
+    savePosts(nextPosts);
+  };
+
+  const addPost = (content: string, image?: string) => {
+    const myProfile = detailedScouts.find(ds => ds.id === 999) || INITIAL_DETAILED_SCOUTS[0];
+    const newPost: Post = {
+      id: Date.now(),
+      authorId: myProfile.id,
+      authorName: myProfile.name,
+      authorAvatar: myProfile.avatar,
+      authorRoles: myProfile.roles,
+      content,
+      image,
+      likes: 0,
+      likedBy: [],
+      comments: [],
+      timestamp: 'Just now'
+    };
+    savePosts([newPost, ...posts]);
+  };
+
+  const likePost = (postId: number, userId: number) => {
+    const nextPosts = posts.map(p => {
+      if (p.id === postId) {
+        const isLiked = p.likedBy.includes(userId);
+        const nextLikedBy = isLiked 
+          ? p.likedBy.filter(id => id !== userId) 
+          : [...p.likedBy, userId];
+        return {
+          ...p,
+          likedBy: nextLikedBy,
+          likes: nextLikedBy.length
+        };
+      }
+      return p;
+    });
+    savePosts(nextPosts);
+  };
+
+  const addComment = (postId: number, authorName: string, text: string) => {
+    const myProfile = detailedScouts.find(ds => ds.id === 999) || INITIAL_DETAILED_SCOUTS[0];
+    const nextPosts = posts.map(p => {
+      if (p.id === postId) {
+        const newComment: Comment = {
+          id: Date.now(),
+          author: authorName,
+          authorAvatar: myProfile.avatar,
+          text,
+          timestamp: 'Just now'
+        };
+        return {
+          ...p,
+          comments: [...p.comments, newComment]
+        };
+      }
+      return p;
+    });
+    savePosts(nextPosts);
   };
 
   return (
@@ -283,12 +524,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       pendingTasks, 
       pendingBadges,
       scouts, 
+      detailedScouts,
+      posts,
       toggleRequirement, 
       toggleSubTask,
       approveTask, 
       addScout,
       submitBadge,
-      approveBadge
+      approveBadge,
+      updateScoutProfile,
+      addPost,
+      likePost,
+      addComment
     }}>
       {children}
     </AppContext.Provider>

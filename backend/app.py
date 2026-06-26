@@ -5,7 +5,7 @@ import os
 from routes.auth_routes import auth_bp
 from utils.db import get_db_connection
 
-# Load environment variables
+# Load environment variables.
 load_dotenv()
 
 app = Flask(__name__)
