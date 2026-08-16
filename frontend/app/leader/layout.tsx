@@ -10,7 +10,7 @@ export default function LeaderLayout({
     <div className="flex h-screen overflow-hidden bg-slate-50">
       <Sidebar role="leader" />
       <main className="flex-1 overflow-y-auto">
-        <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="p-3 md:p-6 w-full">
           {children}
         </div>
       </main>

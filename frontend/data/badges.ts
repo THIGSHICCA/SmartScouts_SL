@@ -47,7 +47,7 @@ export const badgesData: Badge[] = [
   {
     id: 'membership',
     title: 'Scout Membership Badge',
-    icon: '⚜️',
+    icon: '/images/badges/membership-badge.png',
     color: 'green',
     progress: 0,
     isLocked: false,
@@ -190,7 +190,7 @@ export const badgesData: Badge[] = [
   {
     id: 'scout',
     title: 'Scout Award',
-    icon: '🥉',
+    icon: '/images/badges/scout-award.png',
     color: 'orange',
     progress: 0,
     isLocked: true,
@@ -246,7 +246,7 @@ export const badgesData: Badge[] = [
   {
     id: 'chief',
     title: "Chief Commissioner's Award",
-    icon: '🥈',
+    icon: '/images/badges/chief-commissioner-award.png',
     color: 'blue',
     progress: 0,
     isLocked: true,
@@ -286,7 +286,7 @@ export const badgesData: Badge[] = [
   {
     id: 'pm',
     title: "Prime Minister's Scout Award",
-    icon: '🥇',
+    icon: '/images/badges/prime-minister-award.png',
     color: 'yellow',
     progress: 0,
     isLocked: true,
@@ -324,7 +324,7 @@ export const badgesData: Badge[] = [
   {
     id: 'president',
     title: "President's Scout Award",
-    icon: '👑',
+    icon: '/images/badges/president-award.png',
     color: 'purple',
     progress: 0,
     isLocked: true,

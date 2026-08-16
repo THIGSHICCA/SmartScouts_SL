@@ -27,3 +27,21 @@ def token_required(f):
         return f(*args, **kwargs)
     
     return decorated
+
+# Alias for compatibility with new routes
+require_auth = token_required
+
+def require_role(allowed_roles):
+    def decorator(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            user_role = getattr(g, 'user_role', None)
+            
+            # Normalize allowed_roles to a list
+            roles = [allowed_roles] if isinstance(allowed_roles, str) else allowed_roles
+            
+            if user_role not in roles:
+                return jsonify({'message': f'Access denied. Requires one of: {roles}'}), 403
+            return f(*args, **kwargs)
+        return decorated
+    return decorator

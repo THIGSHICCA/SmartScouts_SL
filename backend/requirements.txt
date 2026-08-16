@@ -4,3 +4,10 @@ psycopg2-binary
 pyjwt
 bcrypt
 python-dotenv
+chromadb
+sentence-transformers
+transformers
+torch
+PyPDF2
+Pillow
+werkzeug
